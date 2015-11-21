@@ -1,5 +1,5 @@
 /*
-The following license only applies to the daqsim.c/h files. Please note
+The following license only applies to this file. Please note
 that the source code for the Mongoose web server, distributed with this
 is GPL-licensed.
 
@@ -44,7 +44,6 @@ For more information, please refer to <http://unlicense.org>
 #include "daqsim.h"
 #include "browsercontent.h"
 
-
 //static variables
 static int digital_outputs[DAQ_NUM_DIGITAL_OUTPUTS] = { 0 };
 static int digital_outputs_sent[DAQ_NUM_DIGITAL_OUTPUTS] = { 0 };
@@ -61,10 +60,6 @@ static char session_id[9];
 static int setup_num = 0;
 
 //#define DEBUG_MESSAGES
-
-static const char *s_http_port = "8000";
-static struct mg_serve_http_opts s_http_server_opts;
-
 
 void daq_sleep(int milliseconds) {
 #ifdef WIN32
@@ -349,7 +344,7 @@ void digitalWrite(int channel_number, int val) {
 		daq_digital_write(channel_number, val);
 	}
 	else {
-		printf("Error: Bad inputs to display write.\n");
+		printf("Error: Channel for digitalWrite out of bounds.\n");
 	}
 }
 
@@ -359,7 +354,7 @@ void displayWrite(int data, int position) {
 		daq_display_write(position, data);
 	}
 	else {
-		printf("Error: Bad inputs to display write.\n");
+		printf("Error: Channel or value for displayWrite out of bounds.\n");
 	}
 }
 
