@@ -157,6 +157,9 @@ void send_parse_input(struct mg_connection* connection, struct http_message* mes
 	const char* message_body = message->body.p;
 	size_t message_body_len = message->body.len;
 	unsigned int i = 0;
+#ifdef DEBUG_MESSAGES
+	printf("Incoming HTTP Message:\n");
+#endif
 	while (i < message_body_len) {
 		char param_0[3];
 		int param_1;
@@ -167,7 +170,7 @@ void send_parse_input(struct mg_connection* connection, struct http_message* mes
 				if (param_1 >= 0 && param_1 < DAQ_NUM_DIGITAL_INPUTS) {
 					digital_inputs[param_1] = (param_2 == 0) ? 0 : 1;
 #ifdef DEBUG_MESSAGES
-					printf("Incoming input: %s %d %d\n", param_0, param_1, (param_2 == 0) ? 0 : 1);
+					printf("%s %x %d\n", param_0, param_1, (param_2 == 0)?0:1);
 #endif
 				}
 			}
@@ -175,13 +178,16 @@ void send_parse_input(struct mg_connection* connection, struct http_message* mes
 				if (param_1 >= 0 && param_1 < DAQ_NUM_ANALOG_INPUTS) {
 					analog_inputs[param_1] = param_2;
 #ifdef DEBUG_MESSAGES
-					printf("Incoming input: %s %d %lf\n", param_0, param_1, param_2);
+					printf("%s %x %lf\n", param_0, param_1, param_2);
 #endif
 				}
 			}
 			while (i < message_body_len) if (message_body[i++] == '\n') break;
 		}
 	}
+#ifdef DEBUG_MESSAGES
+	printf("\n");
+#endif
 	mg_printf(connection, "HTTP/1.0 200 OK\r\nContent-Length: 0\r\nCache-Control: no-store\r\n"
 		"Content-Type: text/plain\r\n\r\n");
 	connection->flags |= MG_F_SEND_AND_CLOSE;
@@ -303,10 +309,8 @@ void server_thread() {
 
 	// Set up HTTP server parameters
 	mg_set_protocol_http_websocket(connection);
-	s_http_server_opts.document_root = ".";
-	s_http_server_opts.enable_directory_listing = "no";
 
-	printf("Starting browser.");
+	printf("Attemptiing to start browser.\n");
 	char command[200];
 #if defined(_WIN32) || defined(_WIN64)
 	snprintf(command, 199, "start  http://localhost:%d/simulator_gui?setup_num=%d^&session_id=%s", http_port, setup_num, session_id);
@@ -316,8 +320,10 @@ void server_thread() {
 	system(command);
 #elif defined(__linux__)
 	snprintf(command, 199, "nohup xdg-open \"http://localhost:%d/simulator_gui?setup_num=%d&session_id=%s\" &> /dev/null &", http_port, setup_num, session_id);
-	system(command);
+	popen(command, "w");
 #endif
+	printf("If your browser does not start, please go to the following URL:\n");
+	printf("http://localhost:%d/simulator_gui?setup_num=%d&session_id=%s", http_port, setup_num, session_id);
 
 	while (1) {
 		mg_mgr_poll(&manager, 1);

@@ -102,7 +102,6 @@ int main(void) {
 		//If switch 1 is on, show the angles of the arms on the display.
 		if (digitalRead(1)) {
 			daq_printf("%4d%4d", (int)analogRead(0), (int)analogRead(1));
-			printf("%4d%4d\n", (int)analogRead(0), (int)analogRead(1));
 		}
 		//Otherwise display the current time.
 		else {
