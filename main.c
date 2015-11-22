@@ -31,11 +31,11 @@ For more information, please refer to <http://unlicense.org>
 
 #define _CRT_SECURE_NO_WARNINGS
 
-#include "daqsim.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <time.h>
+#include "daqsim.h"
 
 //This function displays a formatted string on the seven segment displays.
 //Takes the same arguments as printf. Character set is far from complete, but
@@ -106,7 +106,6 @@ int main(void) {
 		//Otherwise display the current time.
 		else {
 			time_t raw_time;
-			struct tm* local_time;
 			time(&raw_time);
 			char time_str[20];
 			strftime(time_str, 19, "%H.%M.%S", localtime(&raw_time));

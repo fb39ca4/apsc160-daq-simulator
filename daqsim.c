@@ -284,7 +284,7 @@ static void event_handler(struct mg_connection* connection, int eventCode, void 
 	}
 }
 
-void server_thread() {
+void* server_thread(void* param) {
 	struct mg_mgr manager;
 	struct mg_connection *connection = NULL;
 
@@ -323,24 +323,30 @@ void server_thread() {
 	popen(command, "w");
 #endif
 	printf("If your browser does not start, please go to the following URL:\n");
-	printf("http://localhost:%d/simulator_gui?setup_num=%d&session_id=%s", http_port, setup_num, session_id);
+	printf("http://localhost:%d/simulator_gui?setup_num=%d&session_id=%s\n", http_port, setup_num, session_id);
 
 	while (1) {
 		mg_mgr_poll(&manager, 1);
 	}
 	mg_mgr_free(&manager);
-	return;
+	return param;
 }
 
 int daq_setup(int num) {
-	setup_num = num;
-	user_has_setup = 1;
-	mg_start_thread(&server_thread, NULL);
-	return 0;
+	if (!user_has_setup) {
+		setup_num = num;
+		user_has_setup = 1;
+		mg_start_thread(&server_thread, NULL);
+		return 1;
+	}
+	else {
+		printf("Error: DAQ Simulator already setup.");
+		return 0;
+	}
 }
 
 int daq_continue_loop(void) {
-	return user_has_quit;
+	return !user_has_quit;
 }
 
 //Safe DAQ i/o functions. Uses same names, parameters as original simulator.
@@ -385,10 +391,10 @@ double analogRead(int channel_number) {
 }
 
 int continueSuperLoop(void) {
-	return !user_has_quit;
+	return daq_continue_loop();
 }
 
-int setupDAQ(int setupNum) {
-	return daq_setup(setupNum);
+int setupDAQ(int setup_num) {
+	return daq_setup(setup_num);
 }
 
